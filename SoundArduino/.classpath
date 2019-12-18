@@ -6,5 +6,10 @@
 	<classpathentry kind="lib" path="/Users/BuiMui/Downloads/thư viện java/jssc-2.8.0.jar"/>
 	<classpathentry kind="lib" path="/Users/BuiMui/Downloads/thư viện java/jlayer-1.0.1.jar"/>
 	<classpathentry kind="lib" path="/Users/BuiMui/Downloads/MP3SPI-1.9.4.1.jar"/>
+	<classpathentry kind="lib" path="/Users/BuiMui/Downloads/beaglebuddy_mp3.jar"/>
+	<classpathentry kind="lib" path="/Users/BuiMui/Downloads/javamp3-1.0.1.jar"/>
+	<classpathentry kind="lib" path="/Users/BuiMui/Downloads/sound-0.0.7.jar"/>
+	<classpathentry kind="lib" path="/Users/BuiMui/Downloads/jmusic-1.6.4.1.jar"/>
+	<classpathentry kind="lib" path="/Users/BuiMui/Downloads/jmr-1.1.0.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
