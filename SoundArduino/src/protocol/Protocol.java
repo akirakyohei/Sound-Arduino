@@ -8,7 +8,7 @@ public class Protocol {
 	private byte header_read;
 
 public Protocol() {
-header_read=0;
+header_write=0;
 header_read=0;
 	// TODO Auto-generated constructor stub
 }
