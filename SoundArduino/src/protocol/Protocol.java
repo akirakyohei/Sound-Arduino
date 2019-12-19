@@ -5,14 +5,14 @@ public class Protocol {
 	private Producer producer;
 	private Consumer consumer;
 	private byte header_write;
-	private byte header_read;
+
 
 public Protocol() {
 header_write=0;
-header_read=0;
+
 	// TODO Auto-generated constructor stub
 }
-	public void writeHeader(long tanSoLayMau, int mauSize) throws InterruptedException {
+	public boolean writeHeader(long tanSoLayMau, int mauSize) throws InterruptedException {
 		header_write |= ProtocolType.DATA_SAMPLES.getValue();
 		byte[] frequencySample = new byte[4];
 		for (int i = 0; i < 4; i++) {
@@ -40,19 +40,20 @@ header_read=0;
 				;
 			if (!consumer.isACK()) {
 		 System.out.print("arduino chua nhan duoc header");
+		 return false;
 			}
 		}
-		pthread.destroy();
-		cThread.destroy();
+		return true;
 		/*
-		 * khoi phuc tan so long report=0; for(int i=3;i>=0;i--) { report<<=8;
+		 * khoi phuc tan so long report=0; for(int i=3;i>=0;i--) {
+		 *  report<<=8;
 		 * report|=(frequencySample[i]&0xff); } ket thuc
 		 **/
 	}
 
-	public void writeData(byte[] data, byte length) {
+	public void writeData(byte[] data, int check) {
 		header_write &= ProtocolType.DATA_SAMPLES.getValue();
-		header_write |= length;
+		header_write |= check;
 		 producer = new Producer(header_write, data);
 		new  Thread(producer).start();
 	}
