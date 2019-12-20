@@ -40,6 +40,18 @@ private int mode ;
 		Player player=new Player(fis);
 		player.play();
 	}
+	 public static void extract(String p){
+	        File f=new File(p);
+	        File l[]=f.listFiles();
+	        for(File x:l){
+	            if(x==null) return;
+	            if(x.isHidden()||!x.canRead()) continue;
+	            if(x.isDirectory()) extract(x.getPath());
+	            else if(x.getName().endsWith(".mp3"))
+	                System.out.println(x.getPath()+"\\"+x.getName());
+	        }
+	    }
+	
 	public File Mp3ToMav() {
 		File mp3=new File(pathFile);
 		File temp=null;
@@ -92,7 +104,7 @@ public static void main(String[] args) throws UnsupportedAudioFileException, IOE
 	
 		String pathFile= "/Volumes/Giai Tri/thư mục không có tiêu đề/Doan Xuan Ca - Bich Phuong.mp3";
 		Mp3 mp3=new Mp3(pathFile);
-
+extract("/Volumes");
 		
 }
 }

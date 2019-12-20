@@ -13,107 +13,123 @@ import javax.sound.sampled.UnsupportedAudioFileException;
 
 import protocol.Protocol;
 
-public class TransmissionAudio extends Thread{
-private AudioInputStream ais;
-private static long secondStart;
-private final long time;
-private long tanSoLayMau;
-private int channels;
-private int mauSize;
-
-public TransmissionAudio(AudioInputStream ais) {
-	this.ais=ais;
-	secondStart=0;
-	AudioFormat format=ais.getFormat();
-	long soluongmau=format.getFrameSize()*ais.getFrameLength()*8/format.getSampleSizeInBits();
-	tanSoLayMau=(long)format.getSampleRate();
-	channels=format.getChannels();
-	mauSize=format.getSampleSizeInBits()/8;
-	time=soluongmau/tanSoLayMau;
+public class TransmissionAudio extends Thread {
+	AudioInputStream stream;
+	int chanels;
+	int sampleRate;
+	int sampleSize;
+	int lengthInByte;
+	int startSecond;
+	boolean ispause;
+  public TransmissionAudio(AudioInputStream stream) throws IOException {
+	this.stream=stream;
+	
+	AudioFormat format=stream.getFormat();
+	 chanels=format.getChannels();
+ sampleRate=(int) format.getSampleRate();
+ sampleSize=format.getSampleSizeInBits()/8;
+	 lengthInByte = stream.available();
+	
+	ispause=false;
+	startSecond=0;
 
 }
 
-
-
+	
 @Override
-	public void run() {
+public void run() {
+	try {
+		transmission();
+	} catch (IOException | InterruptedException | LineUnavailableException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	}
+}
+private synchronized void transmission() throws IOException, InterruptedException, LineUnavailableException {
+try {
 		
-		try {
-			transmission();
-		} catch (IOException | InterruptedException | LineUnavailableException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		AudioFormat format=stream.getFormat();
+		Protocol protocol=new Protocol();
+		//dieu khien 8 bong den
+		boolean as=protocol.writeHeader(sampleRate, 1);
+		startSecond=0;
+		 DataLine.Info   info = new DataLine.Info(SourceDataLine.class, format);
+		 SourceDataLine line=(SourceDataLine) AudioSystem.getLine(info);
+		 line.open(format);
+		 line.start();
+	if(as) {
+			System.out.println("loi");
+			return;
 		}
+		byte[] samples=new byte[lengthInByte];
+		int check;
+		int k=0,j=0;
+		while(true) {j++;
+	while (ispause) {
 	}
-
-private void transmission() throws IOException, InterruptedException, LineUnavailableException {
-	AudioFormat format=ais.getFormat();
-	Protocol protocol=new Protocol();
-	//dieu khien 8 bong den
-	boolean as=protocol.writeHeader(tanSoLayMau, 1);
-	secondStart=0;
-	 DataLine.Info   info = new DataLine.Info(SourceDataLine.class, format);
-	 SourceDataLine line=(SourceDataLine) AudioSystem.getLine(info);
-	 line.open(format);
-	 line.start();
-	
-if(as) {
-		System.out.println("loi");
-		return;
-	}
-	byte[] samples=new byte[128];
-	int check;
-	int k=0;
-	while(true) {
-	//	System.out.println(secondStart);
-
-		check=ais.read(samples,(int) secondStart,128);
-		if(check<0)break;
-		System.out.println(check);
-		if(mauSize==1&&channels==1)
-		protocol.writeData(samples,check);
-		if(mauSize==1&&channels==1) {
-			byte[] buff=new byte[check/2];
-			for(int i=0;i<check;i+=2) {
-			buff[i/2]=samples[i];
+		System.out.println(startSecond);
+		//samples=new byte[lengthInByte];
+			check=stream.read(samples,startSecond,lengthInByte/1000);
+			if(check<0|startSecond>100000) {
+			startSecond=0;
+				
 			}
-			protocol.writeData(buff, check/2);
-			System.out.println("gui du lieu");
+			if(check<0) {
+				break;
+			}
+			//System.out.println(check);
+			if(sampleSize==1&&chanels==1)
+			protocol.writeData(samples,check);
+			if(sampleSize==1&&chanels==1) {
+				byte[] buff=new byte[check/2];
+				for(int i=0;i<check;i+=2) {
+				buff[i/2]=samples[i];
+				}
+				protocol.writeData(buff, check/2);
+				System.out.println("gui du lieu");
+			}
+			
+			k+=line.write(samples,startSecond,check);
+		startSecond+=check;
+		
 		}
-		line.write(samples,0,check);
-	//	secondStart+=check;
+		
+	} catch (IOException | InterruptedException | LineUnavailableException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
 	}
 	
 }
-/**
- * @return the secondStart
- */
-public static long getSecondStart() {
-	return secondStart;
+
+
+
+public int getStartSecond() {
+	return startSecond;
 }
 
 
-
-/**
- * @param secondStart the secondStart to set
- */
-public static void setSecondStart(long secondStart) {
-	TransmissionAudio.secondStart = secondStart;
+public void setStartSecond(int startSecond) {
+	this.startSecond = startSecond;
 }
 
-	public void update(long second) {
-	
-		this.setSecondStart(second/time);
+public void pause( boolean state) {
+	ispause=state;
+}
+
+
+	public synchronized void update(long second) {
+	int time=lengthInByte/sampleRate;
+		setStartSecond(0);
 	}
 
 public static void main(String[] args) throws UnsupportedAudioFileException, IOException, LineUnavailableException, InterruptedException {
 
 	String pathFile= "/Volumes/Giai Tri/thư mục không có tiêu đề/Doan Xuan Ca - Bich Phuong.mp3";
-	String pathFile1="/Users/BuiMui/Downloads/pcm0808m.wav";
-	String pathFile2="/Users/BuiMui/Downloads/pcm1608s.wav";
+	String pathFile1="/Users/BuiMui/Downloads/Inochi no Namae (The Name of Life) - Spirited Away (1).wav";
+	String pathFile2="/Users/BuiMui/Downloads/Inochi no Namae (The Name of Life) - Spirited Away.wav";
 	Mp3 mp3=new  Mp3(pathFile);
-	File file=mp3.Mp3ToMav();
-	//File file=new File(pathFile2);
+	//File file=mp3.Mp3ToMav();
+	File file=new File(pathFile1);
 	AudioInputStream stream=AudioSystem.getAudioInputStream(file);
 	AudioFormat format=stream.getFormat();
 	System.out.println(format.getChannels());
@@ -122,26 +138,10 @@ public static void main(String[] args) throws UnsupportedAudioFileException, IOE
 	System.out.println(format.getChannels());
 	
 	TransmissionAudio m=new TransmissionAudio(stream);
-	m.transmission();;
-//	new Thread(new Runnable() {
-//		
-//		@Override
-//		public void run() {
-//			try {
-//				Thread.sleep(100);
-//				m.update(0);
-//			} catch (InterruptedException e) {
-//				// TODO Auto-generated catch block
-//				e.printStackTrace();
-//			}
-//			
-//		}
-//	}).start();
-//
+	System.out.println("h g hgkk ");
+	m.run();
+	
 }
 
 
-
-
 }
-

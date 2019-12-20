@@ -1,16 +1,21 @@
 package protocol;
 
 public class Protocol {
-
-	private Producer producer;
-	private Consumer consumer;
-	private byte header_write;
-
+	private SendSerial sendSerial;
+	private ReceiveSerial receiveSerial;
+	private static byte header_write;
+private static Protocol protocol;
 
 public Protocol() {
-header_write=0;
 
-	// TODO Auto-generated constructor stub
+}
+public static Protocol getIntance() {
+	if(protocol==null) {
+		protocol=new Protocol();
+	}
+	header_write=0;
+	return protocol;
+	
 }
 	public boolean writeHeader(long tanSoLayMau, int mauSize) throws InterruptedException {
 		header_write |= ProtocolType.DATA_SAMPLES.getValue();
@@ -22,23 +27,23 @@ header_write=0;
 		}
 		header_write |= mauSize;
 		// truyen du lieu sang arduino
-		 producer = new Producer(header_write, frequencySample);
-		 consumer = new Consumer();
-	Thread pthread =  new Thread(producer);
-	Thread cThread= new Thread(consumer);
+		 sendSerial = new SendSerial(header_write, frequencySample);
+		 receiveSerial = new ReceiveSerial();
+	Thread pthread =  new Thread(sendSerial);
+	Thread cThread= new Thread(receiveSerial);
 	pthread.start();
 	cThread.start();
 		
 		while (cThread.isAlive()) {//System.out.println("jhb");
 		}
 			;
-		if (!consumer.isACK()) {
+		if (!receiveSerial.isACK()) {
 			pthread.run();
 
 			cThread.run();
 			while (cThread.isAlive())
 				;
-			if (!consumer.isACK()) {
+			if (!receiveSerial.isACK()) {
 		 System.out.print("arduino chua nhan duoc header");
 		 return false;
 			}
@@ -51,19 +56,20 @@ header_write=0;
 		 **/
 	}
 
-	public void writeData(byte[] data, int check) {
+	public void writeData(byte[] data, int numberOfSamples) {
 		header_write &= ProtocolType.DATA_SAMPLES.getValue();
-		header_write |= check;
-		 producer = new Producer(header_write, data);
-		new  Thread(producer).start();
+		header_write |= numberOfSamples;
+		 sendSerial = new SendSerial(header_write, data);
+		new  Thread(sendSerial).start();
 	}
 	public byte[] readDataBytes() {
-		consumer=new Consumer();
-		Thread cThread=new Thread(consumer);
-		cThread.start();
-		while(cThread.isAlive());
-		return consumer.getDatas();
+		receiveSerial=new ReceiveSerial();
+		Thread rThread=new Thread(receiveSerial);
+		rThread.start();
+		while(rThread.isAlive());
+		return receiveSerial.getDatas();
 	}
+	
 	public static void main(String[] args) {
 		Protocol pro=new Protocol();
 		try {

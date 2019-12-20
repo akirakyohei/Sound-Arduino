@@ -1,10 +1,12 @@
-package model;
+package audio.transmission;
+
 import java.io.IOException;
 
 import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.SourceDataLine;
 
-public class BoundedBuffer{
+import protocol.Protocol;
+
+public class fas {
 
     private int insertSlot, exportSlot, byteSize, occupiedSpaces;
 
@@ -12,13 +14,13 @@ public class BoundedBuffer{
 
     private AudioInputStream songStream;
 
-    private SourceDataLine line;
+    private Protocol protocol;
 
     boolean dataAvailable, spaceAvailable, ispaused = false;
 
     byte[][] buffer;
 
-    BoundedBuffer(int byteSize, AudioInputStream songStream, SourceDataLine line){
+    fas(int byteSize, AudioInputStream songStream,Protocol protocol){
 
         dataAvailable = false;
         spaceAvailable = true;
@@ -32,8 +34,7 @@ public class BoundedBuffer{
         buffer = new byte[bufferSize][byteSize];
 
         this.songStream = songStream;
-        this.line = line;
-        this.line.start();
+       this.protocol=protocol;
     }
 
     synchronized void insertChunk() throws IOException {
@@ -69,6 +70,7 @@ public class BoundedBuffer{
         notify();
 
     }
+    
 
     synchronized void removeChunk() throws Exception {
 
@@ -81,11 +83,10 @@ public class BoundedBuffer{
         byte [] export = buffer[exportSlot];
 
         if (export.length != 0) {
-            line.write(export, 0, export.length);
+        	
+            protocol.writeData(export, export.length);
         }else{
-            line.drain();
-            line.stop();
-            line.close();
+         
             throw new Exception();
         }
 
@@ -93,7 +94,6 @@ public class BoundedBuffer{
         occupiedSpaces--;
         dataAvailable = (occupiedSpaces > 0);
         spaceAvailable = (occupiedSpaces < bufferSize);
-
         notify();
     }
 
@@ -105,5 +105,5 @@ public class BoundedBuffer{
         ispaused = false;
         notifyAll();
     }
-
+    
 }

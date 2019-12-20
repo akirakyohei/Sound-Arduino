@@ -2,14 +2,14 @@ package protocol;
 
 import com.fazecast.jSerialComm.SerialPort;
 
-public class Consumer implements Runnable{
+public class ReceiveSerial implements Runnable{
 	public static final byte ACK = 0x10;
 	private final long TIME_OUT=100;
     private boolean isACK;
 	private byte[] datas;
 	private SerialPort port;
 	
-	public Consumer() {
+	public ReceiveSerial() {
 		setACK(false);
 	}
 	@Override
