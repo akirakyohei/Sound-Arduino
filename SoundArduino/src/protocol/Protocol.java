@@ -1,6 +1,14 @@
 package protocol;
 
 public class Protocol {
+
+	final byte HEADER=(byte) 0x80;
+	final byte DATA_SAMPLES=0x00;
+	final byte SIZE_8_BITS=0x00;
+   final byte SIZE_16_BITS=0x40;
+	final byte BIG_ENDIAN =0x20;
+	final byte LITTLE_ENDIAN =0x00;
+
 	private SendSerial sendSerial;
 	private ReceiveSerial receiveSerial;
 	private static byte header_write;
@@ -18,7 +26,7 @@ public static Protocol getIntance() {
 	
 }
 	public boolean writeHeader(long tanSoLayMau, int mauSize) throws InterruptedException {
-		header_write |= ProtocolType.DATA_SAMPLES.getValue();
+		header_write |= DATA_SAMPLES;
 		byte[] frequencySample = new byte[4];
 		for (int i = 0; i < 4; i++) {
 			frequencySample[i] = (byte) (tanSoLayMau & 0xff);
@@ -57,7 +65,7 @@ public static Protocol getIntance() {
 	}
 
 	public void writeData(byte[] data, int numberOfSamples) {
-		header_write &= ProtocolType.DATA_SAMPLES.getValue();
+		header_write &= DATA_SAMPLES;
 		header_write |= numberOfSamples;
 		 sendSerial = new SendSerial(header_write, data);
 		new  Thread(sendSerial).start();
